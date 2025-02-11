@@ -1,6 +1,6 @@
 import Kaplay, { KAPLAYCtx } from 'kaplay';
 import { PlayerManager } from './player-manager';
-import { SpriteManager, SpriteType } from './sprite-manager';
+import { PlanetAnimation, SpriteManager, SpriteType } from './sprite-manager';
 import { EnemyManager } from './enemy-manager';
 import { life, score, store } from '../store';
 
@@ -116,7 +116,7 @@ export class GameManager {
       this.kaplay.layer(Layer.Background)
     ]);
 
-    planet.play('rotation', { loop: true });
+    planet.play(PlanetAnimation.Default, { loop: true });
 
     // this.kaplay.loadSprite('foreground', `src/assets/maps/${tag}/foreground.png`);
     // this.kaplay.add([this.kaplay.sprite("foreground"), this.kaplay.pos(0, 0), this.kaplay.scale(this.scale), this.kaplay.layer('foreground')]);
@@ -130,7 +130,7 @@ export class GameManager {
       stretch: false,
       global: false,
       debug: true,
-      debugKey: 'f1',
+      debugKey: 'f2',
       canvas: document.getElementById('game') as HTMLCanvasElement,
       pixelDensity: devicePixelRatio
     });
