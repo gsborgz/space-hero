@@ -1,6 +1,6 @@
 import { AnchorComp, AreaComp, BodyComp, GameObj, KAPLAYCtx, LayerComp, PosComp, SpriteComp, Vec2 } from "kaplay";
 import { EntityType, GameConfig, Layer, SceneTag, SoundType } from "./game-manager";
-import { SpriteType } from "./sprite-manager";
+import { ExplosionAnimation, PlayerAnimation, ShotAnimation, SpriteType } from "./sprite-manager";
 import { store, score, life } from '../store';
 
 type PlayerObj = {
@@ -90,36 +90,37 @@ export class PlayerManager {
     if (player.pos.y - (player.height / 2) < this.configs.screen.topBorder) player.pos.y = this.configs.screen.topBorder + (player.height / 2);
     if (player.pos.y + (player.height / 2) > this.configs.screen.bottomBorder) player.pos.y = this.configs.screen.bottomBorder - (player.height / 2);
 
-    if (movingUp && (player.getCurAnim()?.name !== 'up')) player.play('up', { loop: true });
-    if (movingDown && (player.getCurAnim()?.name !== 'down')) player.play('down', { loop: true });
-    if (!movingUp && !movingDown && (player.getCurAnim()?.name !== 'normal')) player.play('normal', { loop: true, speed: 10 });
+    if (movingUp && (player.getCurAnim()?.name !== PlayerAnimation.Up)) player.play(PlayerAnimation.Up, { loop: true });
+    if (movingDown && (player.getCurAnim()?.name !== PlayerAnimation.Down)) player.play(PlayerAnimation.Down, { loop: true });
+    if (!movingUp && !movingDown && (player.getCurAnim()?.name !== PlayerAnimation.Default)) player.play(PlayerAnimation.Default, { loop: true });
   }
 
   private playerShoot(player: PlayerObject): void {
     if (this.kaplay.isKeyPressed('space')) {
-      const bullet = this.kaplay.add([
-        this.kaplay.sprite(SpriteType.Bullet),
-        this.kaplay.pos(player.pos.x + (player.width / 2), player.pos.y),
-        this.kaplay.area({ scale: 0.5, collisionIgnore: [EntityType.Player] }),
-        this.kaplay.body(),
-        this.kaplay.anchor('left'),
-        this.kaplay.layer(Layer.Game),
-        this.kaplay.move(this.kaplay.vec2(1, 0), 650),
-        this.kaplay.offscreen({ destroy: true }),
-        EntityType.PlayerBullet
-      ]);
+      const upperBullet = this.createNewShot(this.kaplay.vec2(player.pos.x + (player.width / 1.5), player.pos.y - 8));
+      const lowerBullet = this.createNewShot(this.kaplay.vec2(player.pos.x + (player.width / 1.5), player.pos.y + 8));
 
-      bullet.play('variation_21', { loop: true });
+      upperBullet.play(ShotAnimation.Default, { loop: true });
+      lowerBullet.play(ShotAnimation.Default, { loop: true });
 
       this.kaplay.play(SoundType.PlayerAttack, {
         speed: 2,
         volume: this.configs.volume,
       });
 
-      bullet.onCollide(EntityType.Enemy, (enemy) => {
+      upperBullet.onCollide(EntityType.Enemy, (enemy) => {
         this.playExplosion(enemy.pos, SoundType.EnemyDeath);
 
-        bullet.destroy();
+        upperBullet.destroy();
+        enemy.destroy();
+
+        store.set(score, (currentScore) => currentScore + 1);
+      });
+
+      lowerBullet.onCollide(EntityType.Enemy, (enemy) => {
+        this.playExplosion(enemy.pos, SoundType.EnemyDeath);
+
+        lowerBullet.destroy();
         enemy.destroy();
 
         store.set(score, (currentScore) => currentScore + 1);
@@ -131,13 +132,13 @@ export class PlayerManager {
     const explosion = this.kaplay.add([
       this.kaplay.sprite(SpriteType.Explosion),
       this.kaplay.pos(pos.x, pos.y),
-      this.kaplay.scale(1),
+      this.kaplay.scale(2.5),
       this.kaplay.anchor('center'),
       this.kaplay.layer(Layer.Game)
     ]);
 
-    explosion.play('variation_8', {
-      speed: 25,
+    explosion.play(ExplosionAnimation.Default, {
+      speed: 20,
       loop: false,
       onEnd: () => explosion.destroy()
     });
@@ -147,6 +148,20 @@ export class PlayerManager {
       speed: 2,
       detune: -100
     });
+  }
+
+  private createNewShot(pos: Vec2): GameObj<SpriteComp | PosComp | LayerComp | AreaComp | BodyComp> {
+    return this.kaplay.add([
+      this.kaplay.sprite(SpriteType.PlayerShot),
+      this.kaplay.pos(pos),
+      this.kaplay.area({ scale: 0.2, offset: this.kaplay.vec2(8, 0), collisionIgnore: [EntityType.Player] }),
+      this.kaplay.body(),
+      this.kaplay.anchor('center'),
+      this.kaplay.layer(Layer.Game),
+      this.kaplay.move(this.kaplay.vec2(1, 0), 650),
+      this.kaplay.offscreen({ destroy: true }),
+      EntityType.PlayerBullet
+    ]);
   }
 
 }
