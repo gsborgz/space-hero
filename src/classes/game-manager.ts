@@ -1,7 +1,7 @@
 import Kaplay, { KAPLAYCtx } from 'kaplay';
 import { PlayerManager } from './player-manager';
 import { PlanetAnimation, SpriteManager, SpriteType } from './sprite-manager';
-import { EnemyManager } from './enemy-manager';
+import { EnemyManager, EnemyObject } from './enemy-manager';
 import { life, score, store } from '../store';
 
 export enum Layer {
@@ -25,9 +25,11 @@ export enum SoundType {
 }
 
 export enum SceneTag {
+  StartMenu = 'start-menu',
   LevelOne = 'level-one',
   LevelTwo = 'level-two',
   LevelThree = 'level-three',
+  Ranking = 'ranking',
 }
 
 export type GameConfig = {
@@ -39,30 +41,44 @@ export type GameConfig = {
     leftBorder: number;
     rightBorder: number;
   };
-  volume: number;
+  sfxVolume: number;
+  musicVolume: number;
 }
 
 export class GameManager {
 
-  private currentScene: SceneTag = SceneTag.LevelOne;
+  private currentScene: SceneTag = SceneTag.StartMenu;
   private kaplay: KAPLAYCtx<{}, never>;
   private configs: GameConfig = {
     screen: {
       width: 800,
-      height: 600,
-      topBorder: 30,
-      bottomBorder: 570,
-      leftBorder: 10,
-      rightBorder: 770
+      height: 500,
+      topBorder: 0,
+      bottomBorder: 0,
+      leftBorder: 0,
+      rightBorder: 0
     },
-    volume: 0.2
+    sfxVolume: 0.2,
+    musicVolume: 0.2
   };
+  private sceneSequence = {
+    [SceneTag.StartMenu]: SceneTag.LevelOne,
+    [SceneTag.LevelOne]: SceneTag.LevelTwo,
+    [SceneTag.LevelTwo]: SceneTag.LevelThree,
+    [SceneTag.LevelThree]: SceneTag.Ranking,
+    [SceneTag.Ranking]: SceneTag.StartMenu
+  }
 
   private playerManager: PlayerManager;
   private spriteManager: SpriteManager;
   private enemyManager: EnemyManager;
 
   constructor() {
+    this.configs.screen.rightBorder = this.configs.screen.width - 20;
+    this.configs.screen.bottomBorder = this.configs.screen.height - 20;
+    this.configs.screen.topBorder = 20;
+    this.configs.screen.leftBorder = 10;
+
     this.kaplay = this.createKaplayInstance();
     this.playerManager = new PlayerManager(this.kaplay, this.configs);
     this.spriteManager = new SpriteManager(this.kaplay);
@@ -81,9 +97,37 @@ export class GameManager {
   private createScenes(): void {
     this.kaplay.setLayers([Layer.Background, Layer.Game, Layer.Foreground, Layer.HUD], Layer.Game);
 
+    this.createStartMenuScene();
     this.createLevel(SceneTag.LevelOne);
     this.createLevel(SceneTag.LevelTwo);
     this.createLevel(SceneTag.LevelThree);
+    this.createRankingScene();
+  }
+
+  private createStartMenuScene(): void {
+    this.kaplay.scene(SceneTag.StartMenu, () => {
+      this.spriteManager.loadSprites(this.currentScene);
+      this.createScenario();
+
+      this.kaplay.onUpdate(() => {
+        if (this.kaplay.isKeyPressed('enter')) {
+          this.kaplay.go(this.sceneSequence[this.currentScene]);
+        }
+      });
+    });
+  }
+
+  private createRankingScene(): void {
+    this.kaplay.scene(SceneTag.Ranking, () => {
+      this.spriteManager.loadSprites(this.currentScene);
+      this.createScenario();
+
+      this.kaplay.onUpdate(() => {
+        if (this.kaplay.isKeyPressed('escape')) {
+          this.kaplay.go(this.sceneSequence[this.currentScene]);
+        }
+      });
+    });
   }
 
   private createLevel(scene: SceneTag): void {
@@ -97,10 +141,26 @@ export class GameManager {
 
       this.playerManager.createPlayer();
       this.enemyManager.createEnemies(this.currentScene);
+
+      this.kaplay.on('boss-defeated', EntityType.Player, () => {
+        this.enemyManager.resetWaves();
+
+        this.kaplay.wait(2, () => this.kaplay.go(this.sceneSequence[this.currentScene]));
+      });
     });
   }
 
   private createScenario(): void {
+    const sceneBackground = {
+      [SceneTag.StartMenu]: SpriteType.MenuBackground,
+      [SceneTag.Ranking]: SpriteType.MenuBackground,
+      [SceneTag.LevelOne]: SpriteType.PlanetOne,
+      [SceneTag.LevelTwo]: SpriteType.PlanetTwo,
+      [SceneTag.LevelThree]: SpriteType.PlanetThree,
+    }
+    const isMenu = sceneBackground[this.currentScene] === SpriteType.MenuBackground;
+    const scale = isMenu ? 12.5 : 0.6;
+
     this.kaplay.add([
       this.kaplay.rect(this.configs.screen.width, this.configs.screen.height, { fill: true }),
       this.kaplay.pos(0, 0),
@@ -108,15 +168,15 @@ export class GameManager {
       this.kaplay.layer(Layer.Background)
     ]);
 
-    const planet = this.kaplay.add([
-      this.kaplay.sprite(SpriteType.PlanetOne),
+    const backgroundSprite = this.kaplay.add([
+      this.kaplay.sprite(sceneBackground[this.currentScene]),
       this.kaplay.pos(this.configs.screen.width / 2, this.configs.screen.height / 2),
-      this.kaplay.scale(0.6),
+      this.kaplay.scale(scale),
       this.kaplay.anchor('center'),
       this.kaplay.layer(Layer.Background)
     ]);
 
-    planet.play(PlanetAnimation.Default, { loop: true });
+    backgroundSprite.play(PlanetAnimation.Default, { loop: true });
 
     // this.kaplay.loadSprite('foreground', `src/assets/maps/${tag}/foreground.png`);
     // this.kaplay.add([this.kaplay.sprite("foreground"), this.kaplay.pos(0, 0), this.kaplay.scale(this.scale), this.kaplay.layer('foreground')]);

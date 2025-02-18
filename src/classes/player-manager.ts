@@ -2,6 +2,7 @@ import { AnchorComp, AreaComp, BodyComp, GameObj, KAPLAYCtx, LayerComp, PosComp,
 import { EntityType, GameConfig, Layer, SceneTag, SoundType } from "./game-manager";
 import { ExplosionAnimation, PlayerAnimation, ShotAnimation, SpriteType } from "./sprite-manager";
 import { store, score, life } from '../store';
+import { EnemyObject } from "./enemy-manager";
 
 type PlayerObj = {
   speed: number;
@@ -11,6 +12,7 @@ type PlayerObj = {
 type PlayerObject = GameObj<SpriteComp | PosComp | LayerComp | AreaComp | BodyComp | AnchorComp | PlayerObj>;
 
 export class PlayerManager {
+
   constructor(
     private readonly kaplay: KAPLAYCtx<{}, never>,
     private readonly configs: GameConfig,
@@ -21,7 +23,7 @@ export class PlayerManager {
       this.kaplay.sprite(SpriteType.Player),
       this.kaplay.pos(0, 0),
       this.kaplay.area({ scale: 0.5, offset: this.kaplay.vec2(8, 0) }),
-      this.kaplay.body(),
+      this.kaplay.body({ isStatic: true }),
       this.kaplay.scale(1.5),
       this.kaplay.anchor('center'),
       this.kaplay.layer(Layer.Game),
@@ -50,12 +52,9 @@ export class PlayerManager {
     });
 
     player.onCollide(EntityType.Enemy, (enemy) => {
-      this.playExplosion(enemy.pos, SoundType.EnemyDeath);
-
-      enemy.destroy();
+      enemy.hp -= 2;
 
       store.set(life, (currentLife) => currentLife - 1);
-      store.set(score, (currentScore) => currentScore + 1);
 
       if (store.get(life) <= 0) {
         this.playExplosion(player.pos, SoundType.PlayerDeath);
@@ -68,6 +67,20 @@ export class PlayerManager {
 
           this.kaplay.go(SceneTag.LevelOne);
         }, 2000);
+      }
+
+      if (enemy.hp <= 0) {
+        this.playExplosion(enemy.pos, SoundType.EnemyDeath);
+
+        enemy.destroy();
+
+        if (enemy.isBoss) {
+          store.set(score, (currentScore) => currentScore + 100);
+
+          player.trigger('boss-defeated');
+        } else {
+          store.set(score, (currentScore) => currentScore + 1);
+        }
       }
     });
   }
@@ -97,33 +110,35 @@ export class PlayerManager {
 
   private playerShoot(player: PlayerObject): void {
     if (this.kaplay.isKeyPressed('space')) {
-      const upperBullet = this.createNewShot(this.kaplay.vec2(player.pos.x + (player.width / 1.5), player.pos.y - 8));
-      const lowerBullet = this.createNewShot(this.kaplay.vec2(player.pos.x + (player.width / 1.5), player.pos.y + 8));
+      const bullet = this.createNewShot(this.kaplay.vec2(player.pos.x + (player.width / 1.5), player.pos.y));
 
-      upperBullet.play(ShotAnimation.Default, { loop: true });
-      lowerBullet.play(ShotAnimation.Default, { loop: true });
+      bullet.play(ShotAnimation.Default, { loop: true });
 
       this.kaplay.play(SoundType.PlayerAttack, {
         speed: 2,
-        volume: this.configs.volume,
+        volume: this.configs.sfxVolume,
       });
 
-      upperBullet.onCollide(EntityType.Enemy, (enemy) => {
-        this.playExplosion(enemy.pos, SoundType.EnemyDeath);
+      bullet.onCollide(EntityType.Enemy, (object) => {
+        bullet.destroy();
 
-        upperBullet.destroy();
-        enemy.destroy();
+        const enemy = object as EnemyObject;
 
-        store.set(score, (currentScore) => currentScore + 1);
-      });
+        enemy.hp -= 1;
 
-      lowerBullet.onCollide(EntityType.Enemy, (enemy) => {
-        this.playExplosion(enemy.pos, SoundType.EnemyDeath);
+        if (enemy.hp <= 0) {
+          this.playExplosion(enemy.pos, SoundType.EnemyDeath);
 
-        lowerBullet.destroy();
-        enemy.destroy();
+          enemy.destroy();
 
-        store.set(score, (currentScore) => currentScore + 1);
+          if (enemy.isBoss) {
+            store.set(score, (currentScore) => currentScore + 100);
+
+            player.trigger('boss-defeated');
+          } else {
+            store.set(score, (currentScore) => currentScore + 1);
+          }
+        }
       });
     }
   }
@@ -144,7 +159,7 @@ export class PlayerManager {
     });
 
     this.kaplay.play(explosionType, {
-      volume: this.configs.volume,
+      volume: this.configs.sfxVolume,
       speed: 2,
       detune: -100
     });
@@ -155,7 +170,7 @@ export class PlayerManager {
       this.kaplay.sprite(SpriteType.PlayerShot),
       this.kaplay.pos(pos),
       this.kaplay.area({ scale: 0.2, offset: this.kaplay.vec2(8, 0), collisionIgnore: [EntityType.Player] }),
-      this.kaplay.body(),
+      this.kaplay.body({ isStatic: false }),
       this.kaplay.anchor('center'),
       this.kaplay.layer(Layer.Game),
       this.kaplay.move(this.kaplay.vec2(1, 0), 650),

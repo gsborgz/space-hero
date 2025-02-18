@@ -27,6 +27,7 @@ export enum SpriteType {
   PlayerShot = 'player-shot',
   EnemyShot = 'enemy-shot',
   Player = 'player',
+  MenuBackground = 'menu-background',
 }
 
 export class SpriteManager {
@@ -42,19 +43,22 @@ export class SpriteManager {
   }
 
   private loadScenarioSprites(scene: SceneTag): void {
-    const planets = {
+    const backgroundImages = {
+      [SceneTag.StartMenu]: SpriteType.MenuBackground,
+      [SceneTag.Ranking]: SpriteType.MenuBackground,
       [SceneTag.LevelOne]: SpriteType.PlanetOne,
       [SceneTag.LevelTwo]: SpriteType.PlanetTwo,
       [SceneTag.LevelThree]: SpriteType.PlanetThree,
     };
+    const isMenu = backgroundImages[scene] === SpriteType.MenuBackground;
 
-    this.kaplay.loadSprite(planets[scene], `src/assets/sprites/${planets[scene]}.png`, {
+    this.kaplay.loadSprite(backgroundImages[scene], `src/assets/sprites/${backgroundImages[scene]}.png`, {
       sliceY: 1,
-      sliceX: 100,
+      sliceX: isMenu ? 4 : 100,
       anims: {
         [PlanetAnimation.Default]: {
           from: 0,
-          to: 99,
+          to: isMenu ? 3 : 99,
         }
       }
     });
@@ -71,7 +75,7 @@ export class SpriteManager {
   }
 
   private loadShotSprites(): void {
-    this.kaplay.loadSprite(SpriteType.PlayerShot, `src/assets/sprites/player_shot.png`, {
+    this.kaplay.loadSprite(SpriteType.PlayerShot, `src/assets/sprites/player-shot.png`, {
       sliceY: 1,
       sliceX: 2,
       anims: {
