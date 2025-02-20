@@ -2,7 +2,7 @@ import { AnchorComp, AreaComp, BodyComp, GameObj, KAPLAYCtx, LayerComp, PosComp,
 import { EntityType, GameConfig, Layer, SceneTag, SoundType } from "./game-manager";
 import { ExplosionAnimation, PlayerAnimation, ShotAnimation, SpriteType } from "./sprite-manager";
 import { store, score, life } from '../store';
-import { EnemyObject } from "./enemy-manager";
+import { BossObject, MinionObject } from "./enemy-manager";
 
 type PlayerObj = {
   speed: number;
@@ -122,7 +122,7 @@ export class PlayerManager {
       bullet.onCollide(EntityType.Enemy, (object) => {
         bullet.destroy();
 
-        const enemy = object as EnemyObject;
+        const enemy = object as MinionObject & BossObject;
 
         enemy.hp -= 1;
 

@@ -1,7 +1,7 @@
 import Kaplay, { KAPLAYCtx } from 'kaplay';
 import { PlayerManager } from './player-manager';
 import { PlanetAnimation, SpriteManager, SpriteType } from './sprite-manager';
-import { EnemyManager, EnemyObject } from './enemy-manager';
+import { EnemyManager, MinionObject } from './enemy-manager';
 import { life, score, store } from '../store';
 
 export enum Layer {

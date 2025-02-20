@@ -1,4 +1,4 @@
-import { AnchorComp, AreaComp, BodyComp, EmptyComp, GameObj, KAPLAYCtx, LayerComp, OffScreenComp, PosComp, RectComp, Vec2 } from "kaplay";
+import { AnchorComp, AreaComp, BodyComp, GameObj, KAPLAYCtx, LayerComp, OffScreenComp, PosComp, RectComp, Vec2 } from "kaplay";
 import { EntityType, GameConfig, Layer, SceneTag } from "./game-manager";
 
 enum MoveDirection {
@@ -17,8 +17,6 @@ enum MoveType {
 
 type EnemyObj = {
   hp: number;
-  isBoss?: boolean,
-  nextScene?: SceneTag;
   startPosition: Vec2;
   size: { w: number, h: number };
   moveType: MoveType;
@@ -30,7 +28,13 @@ type EnemyObj = {
   speedY: number;
 }
 
-export type EnemyObject = GameObj<PosComp | RectComp | AreaComp | BodyComp | AnchorComp | LayerComp | OffScreenComp | EnemyObj>;
+type BossObj = EnemyObj & {
+  isBoss?: boolean,
+  stopPositionX: number,
+}
+
+export type MinionObject = GameObj<PosComp | RectComp | AreaComp | BodyComp | AnchorComp | LayerComp | OffScreenComp | EnemyObj>;
+export type BossObject = GameObj<PosComp | RectComp | AreaComp | BodyComp | AnchorComp | LayerComp | OffScreenComp | BossObj>;
 
 type WaveConfig = {
   loopInterval: number;
@@ -147,6 +151,18 @@ export class EnemyManager {
           speedX: 100,
           speedY: 200,
         });
+
+        this.kaplay.wait(1, () => {
+          this.createMinion({
+            hp: 2,
+            startPosition: this.kaplay.vec2(this.configs.screen.width, this.configs.screen.height / 2),
+            moveType: MoveType.Straight,
+            initialMoveInterval: 50,
+            size: { w: 20, h: 20 },
+            speedX: 100,
+            speedY: 200,
+          });
+        });
       }
     };
     const waveThree: WaveConfig = {
@@ -155,9 +171,9 @@ export class EnemyManager {
       waitTimeBeforeEnd: 0,
       spawnFunction: () => {
         this.createBoss({
-          hp: 2,
-          nextScene: SceneTag.LevelTwo,
-          startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2)),
+          hp: 50,
+          stopPositionX: 750,
+          startPosition: this.kaplay.vec2(this.configs.screen.width + 100, (this.configs.screen.height / 2)),
           moveType: MoveType.UpDown,
           initialMoveInterval: 50,
           size: { w: 50, h: 50 },
@@ -199,7 +215,7 @@ export class EnemyManager {
     });
   }
 
-  private createBoss(config: EnemyObj): void {
+  private createBoss(config: BossObj): void {
     const enemy = this.kaplay.add([
       this.kaplay.rect(config.size.w, config.size.h, { fill: true }),
       this.kaplay.pos(config.startPosition),
@@ -217,7 +233,7 @@ export class EnemyManager {
     ]);
 
     enemy.onUpdate(() => {
-      const isEnteringScreen = enemy.pos.x > this.configs.screen.width / 2 + 300;
+      const isEnteringScreen = enemy.pos.x > config.stopPositionX;
 
       if (isEnteringScreen) {
         enemy.move(-50, 0);
@@ -227,7 +243,7 @@ export class EnemyManager {
     });
   }
 
-  private setEnemyMovement(enemy: EnemyObject, speedX: number, speedY: number): void {
+  private setEnemyMovement(enemy: MinionObject | BossObject, speedX: number, speedY: number): void {
     if (enemy.moveType === MoveType.Straight) {
       enemy.move(speedX * -1, 0);
     } else if (enemy.moveType === MoveType.UpDown) {
