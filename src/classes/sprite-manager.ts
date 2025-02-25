@@ -25,7 +25,7 @@ export enum SpriteType {
   PlanetThree = 'planet-three',
   Explosion = 'explosion',
   PlayerShot = 'player-shot',
-  EnemyShot = 'enemy-shot',
+  EnemyShot = 'player-shot',
   Player = 'player',
   MenuBackground = 'menu-background',
 }
@@ -65,7 +65,7 @@ export class SpriteManager {
   }
 
   private loadExplosionSprite(): void {
-    this.kaplay.loadSprite(SpriteType.Explosion, `src/assets/sprites/explosion.png`, {
+    this.kaplay.loadSprite(SpriteType.Explosion, `src/assets/sprites/${SpriteType.Explosion}.png`, {
       sliceY: 1,
       sliceX: 6,
       anims: {
@@ -75,7 +75,15 @@ export class SpriteManager {
   }
 
   private loadShotSprites(): void {
-    this.kaplay.loadSprite(SpriteType.PlayerShot, `src/assets/sprites/player-shot.png`, {
+    this.kaplay.loadSprite(SpriteType.PlayerShot, `src/assets/sprites/${SpriteType.PlayerShot}.png`, {
+      sliceY: 1,
+      sliceX: 2,
+      anims: {
+        [ShotAnimation.Default]: { from: 0, to: 1 },
+      }
+    });
+
+    this.kaplay.loadSprite(SpriteType.EnemyShot, `src/assets/sprites/${SpriteType.EnemyShot}.png`, {
       sliceY: 1,
       sliceX: 2,
       anims: {
@@ -85,7 +93,7 @@ export class SpriteManager {
   }
 
   private loadPlayerSprite(): void {
-    this.kaplay.loadSprite(SpriteType.Player, `src/assets/sprites/player.png`, {
+    this.kaplay.loadSprite(SpriteType.Player, `src/assets/sprites/${SpriteType.Player}.png`, {
       sliceY: 3,
       sliceX: 2,
       anims: {

@@ -9,7 +9,7 @@ type PlayerObj = {
   movementDirection: Vec2;
 };
 
-type PlayerObject = GameObj<SpriteComp | PosComp | LayerComp | AreaComp | BodyComp | AnchorComp | PlayerObj>;
+export type PlayerObject = GameObj<SpriteComp | PosComp | LayerComp | AreaComp | BodyComp | AnchorComp | PlayerObj>;
 
 export class PlayerManager {
 
@@ -61,12 +61,12 @@ export class PlayerManager {
 
         player.destroy();
 
-        setTimeout(() => {
+        this.kaplay.wait(2, () => {
           store.set(life, 3);
           store.set(score, 0);
 
           this.kaplay.go(SceneTag.LevelOne);
-        }, 2000);
+        });
       }
 
       if (enemy.hp <= 0) {

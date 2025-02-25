@@ -1,13 +1,16 @@
-import { AnchorComp, AreaComp, BodyComp, GameObj, KAPLAYCtx, LayerComp, OffScreenComp, PosComp, RectComp, Vec2 } from "kaplay";
-import { EntityType, GameConfig, Layer, SceneTag } from "./game-manager";
+import { AnchorComp, AreaComp, BodyComp, GameObj, KAPLAYCtx, LayerComp, OffScreenComp, PosComp, RectComp, SpriteComp, Vec2 } from "kaplay";
+import { EntityType, GameConfig, Layer, SceneTag, SoundType } from "./game-manager";
+import { ExplosionAnimation, ShotAnimation, SpriteType } from "./sprite-manager";
+import { life, score, store } from "../store";
+import { PlayerObject } from "./player-manager";
 
-enum MoveDirection {
+export enum MoveDirection {
   Up = 'up',
   Down = 'down',
   None = 'none',
 }
 
-enum MoveType {
+export enum MoveType {
   Straight = 'straight',
   UpDown = 'up-down',
   UpDownStraight = 'up-down-straight',
@@ -15,7 +18,7 @@ enum MoveType {
   UpDownRush = 'up-down-rush',
 }
 
-type EnemyObj = {
+export type EnemyObj = {
   hp: number;
   startPosition: Vec2;
   size: { w: number, h: number };
@@ -26,9 +29,11 @@ type EnemyObj = {
   moveInterval?: number;
   speedX: number;
   speedY: number;
+  shootInterval?: number;
+  waitForNextShot?: boolean;
 }
 
-type BossObj = EnemyObj & {
+export type BossObj = EnemyObj & {
   isBoss?: boolean,
   stopPositionX: number,
 }
@@ -36,165 +41,14 @@ type BossObj = EnemyObj & {
 export type MinionObject = GameObj<PosComp | RectComp | AreaComp | BodyComp | AnchorComp | LayerComp | OffScreenComp | EnemyObj>;
 export type BossObject = GameObj<PosComp | RectComp | AreaComp | BodyComp | AnchorComp | LayerComp | OffScreenComp | BossObj>;
 
-type WaveConfig = {
-  loopInterval: number;
-  maxLoops: number;
-  waitTimeBeforeEnd: number;
-  spawnFunction: () => void;
-}
-
 export class EnemyManager {
-
-  private currentWave = 0;
-  private currentWaveLoop = 0;
-  private waves: WaveConfig[] = [];
 
   constructor(
     private readonly kaplay: KAPLAYCtx<{}, never>,
     private readonly configs: GameConfig,
   ) { }
 
-  public createEnemies(scene: SceneTag): void {
-    switch (scene) {
-      case SceneTag.LevelOne:
-        this.createLevelOneWaves();
-        break;
-      case SceneTag.LevelTwo:
-        this.createLevelTwoEnemies();
-        break;
-      case SceneTag.LevelThree:
-        this.createLevelThreeEnemies();
-        break;
-    }
-
-    this.currentWave = 0;
-    this.currentWaveLoop = 0;
-
-    this.kaplay.wait(4, () => this.runWaves());
-  }
-
-  public resetWaves(): void {
-    this.currentWave = 0;
-    this.currentWaveLoop = 0;
-    this.waves = [];
-  }
-
-  private runWaves(): void {
-    if (!this.waves[this.currentWave]) return;
-
-    this.kaplay.loop(this.waves[this.currentWave].loopInterval, () => {
-      this.currentWaveLoop++;
-      this.waves[this.currentWave].spawnFunction();
-
-      if (this.currentWaveLoop >= this.waves[this.currentWave].maxLoops) {
-        this.currentWaveLoop = 0;
-
-        if (!this.waves[this.currentWave + 1]) return;
-
-        this.kaplay.wait(this.waves[this.currentWave].waitTimeBeforeEnd, () => {
-          this.currentWave++;
-          this.runWaves();
-        });
-      }
-    }, this.waves[this.currentWave].maxLoops);
-  }
-
-  private createLevelOneWaves(): void {
-    const waveOne: WaveConfig = {
-      loopInterval: 0.5,
-      maxLoops: 10,
-      waitTimeBeforeEnd: 10,
-      spawnFunction: () => {
-        this.createMinion({
-          hp: 2,
-          startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 100),
-          moveType: MoveType.UpDownStraight,
-          moveDirection: MoveDirection.Up,
-          moveLimit: 100,
-          size: { w: 20, h: 20 },
-          speedX: 85,
-          speedY: 150,
-        });
-        this.createMinion({
-          hp: 2,
-          startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) + 100),
-          moveType: MoveType.UpDownStraight,
-          moveDirection: MoveDirection.Down,
-          moveLimit: 100,
-          size: { w: 20, h: 20 },
-          speedX: 85,
-          speedY: 150,
-        });
-      }
-    };
-    const waveTwo: WaveConfig = {
-      loopInterval: 2,
-      maxLoops: 3,
-      waitTimeBeforeEnd: 10,
-      spawnFunction: () => {
-        this.createMinion({
-          hp: 2,
-          startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 120),
-          moveType: MoveType.Random,
-          initialMoveInterval: 50,
-          size: { w: 20, h: 20 },
-          speedX: 100,
-          speedY: 200,
-        });
-
-        this.createMinion({
-          hp: 2,
-          startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) + 120),
-          moveType: MoveType.Random,
-          initialMoveInterval: 50,
-          size: { w: 20, h: 20 },
-          speedX: 100,
-          speedY: 200,
-        });
-
-        this.kaplay.wait(1, () => {
-          this.createMinion({
-            hp: 2,
-            startPosition: this.kaplay.vec2(this.configs.screen.width, this.configs.screen.height / 2),
-            moveType: MoveType.Straight,
-            initialMoveInterval: 50,
-            size: { w: 20, h: 20 },
-            speedX: 100,
-            speedY: 200,
-          });
-        });
-      }
-    };
-    const waveThree: WaveConfig = {
-      loopInterval: 1,
-      maxLoops: 1,
-      waitTimeBeforeEnd: 0,
-      spawnFunction: () => {
-        this.createBoss({
-          hp: 50,
-          stopPositionX: 750,
-          startPosition: this.kaplay.vec2(this.configs.screen.width + 100, (this.configs.screen.height / 2)),
-          moveType: MoveType.UpDown,
-          initialMoveInterval: 50,
-          size: { w: 50, h: 50 },
-          speedX: 100,
-          speedY: 200,
-        });
-      }
-    }
-
-    this.waves.push(waveOne, waveTwo, waveThree);
-  }
-
-  private createLevelTwoEnemies(): void {
-
-  }
-
-  private createLevelThreeEnemies(): void {
-
-  }
-
-  private createMinion(config: EnemyObj): void {
+  public createMinion(config: EnemyObj): void {
     const enemy = this.kaplay.add([
       this.kaplay.rect(config.size.w, config.size.h, { fill: true }),
       this.kaplay.pos(config.startPosition),
@@ -211,11 +65,15 @@ export class EnemyManager {
     ]);
 
     enemy.onUpdate(() => {
+      if (config.shootInterval && !enemy.waitForNextShot) {
+        this.enemyShoot(enemy);
+      }
+
       this.setEnemyMovement(enemy, config.speedX, config.speedY);
     });
   }
 
-  private createBoss(config: BossObj): void {
+  public createBoss(config: BossObj): void {
     const enemy = this.kaplay.add([
       this.kaplay.rect(config.size.w, config.size.h, { fill: true }),
       this.kaplay.pos(config.startPosition),
@@ -298,6 +156,78 @@ export class EnemyManager {
     } else if (enemy.moveType === MoveType.UpDownRush) {
       console.log('rush');
     }
+  }
+
+  private enemyShoot(enemy: MinionObject | BossObject): void {
+    enemy.waitForNextShot = true;
+
+    const bullet = this.createNewShot(this.kaplay.vec2(enemy.pos.x - (enemy.width / 1.5), enemy.pos.y));
+
+    bullet.play(ShotAnimation.Default, { loop: true });
+
+    this.kaplay.play(SoundType.EnemyAttack, {
+      speed: 2,
+      volume: this.configs.sfxVolume,
+    });
+
+    bullet.onCollide(EntityType.Player, (object) => {
+      bullet.destroy();
+
+      const player = object as PlayerObject;
+
+      store.set(life, (currentLife) => currentLife - 1);
+
+      if (store.get(life) <= 0) {
+        this.playExplosion(player.pos, SoundType.PlayerDeath);
+
+        player.destroy();
+
+        this.kaplay.wait(2, () => {
+          store.set(life, 3);
+          store.set(score, 0);
+
+          this.kaplay.go(SceneTag.LevelOne);
+        });
+      }
+    });
+
+    this.kaplay.wait(enemy.shootInterval!, () => enemy.waitForNextShot = false);
+  }
+
+  private createNewShot(pos: Vec2): GameObj<SpriteComp | PosComp | LayerComp | AreaComp | BodyComp> {
+    return this.kaplay.add([
+      this.kaplay.sprite(SpriteType.PlayerShot),
+      this.kaplay.pos(pos),
+      this.kaplay.area({ scale: 0.2, offset: this.kaplay.vec2(8, 0), collisionIgnore: [EntityType.Player] }),
+      this.kaplay.body({ isStatic: false }),
+      this.kaplay.anchor('center'),
+      this.kaplay.layer(Layer.Game),
+      this.kaplay.move(this.kaplay.vec2(-1, 0), 650),
+      this.kaplay.offscreen({ destroy: true }),
+      EntityType.PlayerBullet
+    ]);
+  }
+
+  private playExplosion(pos: Vec2, explosionType: SoundType): void {
+    const explosion = this.kaplay.add([
+      this.kaplay.sprite(SpriteType.Explosion),
+      this.kaplay.pos(pos.x, pos.y),
+      this.kaplay.scale(2.5),
+      this.kaplay.anchor('center'),
+      this.kaplay.layer(Layer.Game)
+    ]);
+
+    explosion.play(ExplosionAnimation.Default, {
+      speed: 20,
+      loop: false,
+      onEnd: () => explosion.destroy()
+    });
+
+    this.kaplay.play(explosionType, {
+      volume: this.configs.sfxVolume,
+      speed: 2,
+      detune: -100
+    });
   }
 
   private randomIntFromInterval(min: number, max: number) { // min and max included 

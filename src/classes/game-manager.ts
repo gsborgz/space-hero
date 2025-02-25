@@ -1,8 +1,8 @@
 import Kaplay, { KAPLAYCtx } from 'kaplay';
 import { PlayerManager } from './player-manager';
 import { PlanetAnimation, SpriteManager, SpriteType } from './sprite-manager';
-import { EnemyManager, MinionObject } from './enemy-manager';
 import { life, score, store } from '../store';
+import { LevelManager } from './level-manager';
 
 export enum Layer {
   Background = 'background',
@@ -21,7 +21,7 @@ export enum SoundType {
   PlayerDeath = 'player-death',
   EnemyDeath = 'enemy-death',
   PlayerAttack = 'player-attack',
-  EnemyAttack = 'enemy-attack',
+  EnemyAttack = 'player-attack',
 }
 
 export enum SceneTag {
@@ -71,7 +71,7 @@ export class GameManager {
 
   private playerManager: PlayerManager;
   private spriteManager: SpriteManager;
-  private enemyManager: EnemyManager;
+  private levelManager: LevelManager;
 
   constructor() {
     this.configs.screen.rightBorder = this.configs.screen.width - 20;
@@ -82,7 +82,7 @@ export class GameManager {
     this.kaplay = this.createKaplayInstance();
     this.playerManager = new PlayerManager(this.kaplay, this.configs);
     this.spriteManager = new SpriteManager(this.kaplay);
-    this.enemyManager = new EnemyManager(this.kaplay, this.configs);
+    this.levelManager = new LevelManager(this.kaplay, this.configs);
   }
 
   public start(): void {
@@ -140,11 +140,9 @@ export class GameManager {
       this.createScenario();
 
       this.playerManager.createPlayer();
-      this.enemyManager.createEnemies(this.currentScene);
+      this.levelManager.startLevel(scene);
 
       this.kaplay.on('boss-defeated', EntityType.Player, () => {
-        this.enemyManager.resetWaves();
-
         this.kaplay.wait(2, () => this.kaplay.go(this.sceneSequence[this.currentScene]));
       });
     });
