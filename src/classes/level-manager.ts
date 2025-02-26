@@ -65,10 +65,8 @@ export class LevelManager {
 
   }
 
-  private levelOneWaveOne() {
-    let currentLoop = 0;
-
-    this.kaplay.loop(1, () => {
+  private async levelOneWaveOne() {
+    await this.loop(1, 10, async (currentLoop) => {
       this.enemyManager.createMinion({
         hp: 2,
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 100),
@@ -78,7 +76,6 @@ export class LevelManager {
         size: { w: 20, h: 20 },
         speedX: 85,
         speedY: 150,
-        shootInterval: 1,
       });
       this.enemyManager.createMinion({
         hp: 2,
@@ -91,20 +88,16 @@ export class LevelManager {
         speedY: 150,
       });
 
-      currentLoop++;
+      if (currentLoop === 9) {
+        await this.wait(10);
 
-      if (currentLoop === 10) {
-        this.kaplay.wait(10, () => {
-          this.callNextWave();
-        });
+        this.callNextWave();
       }
-    }, 10);
+    });
   }
 
   private levelOneWaveTwo() {
-    let currentLoop = 0;
-
-    this.kaplay.loop(1, () => {
+    this.loop(1, 10, async (currentLoop) => {
       this.enemyManager.createMinion({
         hp: 2,
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 120),
@@ -128,11 +121,11 @@ export class LevelManager {
       currentLoop++;
 
       if (currentLoop === 10) {
-        this.kaplay.wait(10, () => {
-          this.callNextWave();
-        });
+        await this.wait(10);
+
+        this.callNextWave();
       }
-    }, 10);
+    });
   }
 
   private levelOneWaveThree() {
@@ -145,6 +138,30 @@ export class LevelManager {
       size: { w: 50, h: 50 },
       speedX: 100,
       speedY: 200,
+    });
+  }
+
+  private async loop(time: number, maxLoops: number, callback: (currentLoop: number) => Promise<void>): Promise<void> {
+    let currentLoop = 0;
+
+    return new Promise((resolve) => {
+      this.kaplay.loop(time, async () => {
+        await callback(currentLoop);
+
+        currentLoop++;
+
+        if (currentLoop === maxLoops) {
+          resolve();
+        }
+      }, maxLoops);
+    });
+  }
+
+  private wait(time: number): Promise<void> {
+    return new Promise((resolve) => {
+      this.kaplay.wait(time, () => {
+        resolve();
+      });
     });
   }
 
