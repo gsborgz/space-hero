@@ -1,6 +1,7 @@
 import { KAPLAYCtx } from 'kaplay';
 import { GameConfig, SceneTag } from './game-manager';
 import { EnemyManager, MoveDirection, MoveType } from './enemy-manager';
+import { Sprite } from './sprite-manager';
 
 export class LevelManager {
 
@@ -68,22 +69,24 @@ export class LevelManager {
   private async levelOneWaveOne() {
     await this.loop(1, 10, async (currentLoop) => {
       this.enemyManager.createMinion({
+        sprite: Sprite.MinionOne,
+        scale: 2,
         hp: 2,
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 100),
         moveType: MoveType.UpDownStraight,
         moveDirection: MoveDirection.Up,
         moveLimit: 100,
-        size: { w: 20, h: 20 },
         speedX: 85,
         speedY: 150,
       });
       this.enemyManager.createMinion({
+        sprite: Sprite.MinionOne,
+        scale: 2,
         hp: 2,
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) + 100),
         moveType: MoveType.UpDownStraight,
         moveDirection: MoveDirection.Down,
         moveLimit: 100,
-        size: { w: 20, h: 20 },
         speedX: 85,
         speedY: 150,
       });
@@ -99,21 +102,23 @@ export class LevelManager {
   private levelOneWaveTwo() {
     this.loop(1, 10, async (currentLoop) => {
       this.enemyManager.createMinion({
+        sprite: Sprite.MinionTwo,
+        scale: 2,
         hp: 2,
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 120),
         moveType: MoveType.Random,
         initialMoveInterval: 50,
-        size: { w: 20, h: 20 },
         speedX: 100,
         speedY: 200,
       });
 
       this.enemyManager.createMinion({
+        sprite: Sprite.MinionTwo,
+        scale: 2,
         hp: 2,
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) + 120),
         moveType: MoveType.Random,
         initialMoveInterval: 50,
-        size: { w: 20, h: 20 },
         speedX: 100,
         speedY: 200,
       });
@@ -130,12 +135,14 @@ export class LevelManager {
 
   private levelOneWaveThree() {
     this.enemyManager.createBoss({
+      sprite: Sprite.BossOne,
       hp: 50,
-      stopPositionX: 750,
+      stopPositionX: 730,
+      shootInterval: 3,
       startPosition: this.kaplay.vec2(this.configs.screen.width + 100, (this.configs.screen.height / 2)),
       moveType: MoveType.UpDown,
       initialMoveInterval: 50,
-      size: { w: 50, h: 50 },
+      scale: 2,
       speedX: 100,
       speedY: 200,
     });

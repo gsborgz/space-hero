@@ -1,6 +1,6 @@
 import Kaplay, { KAPLAYCtx } from 'kaplay';
 import { PlayerManager } from './player-manager';
-import { PlanetAnimation, SpriteManager, SpriteType } from './sprite-manager';
+import { PlanetAnimation, SpriteManager, Sprite, Background } from './sprite-manager';
 import { life, score, store } from '../store';
 import { LevelManager } from './level-manager';
 
@@ -15,6 +15,7 @@ export enum EntityType {
   Player = 'player',
   Enemy = 'enemy',
   PlayerBullet = 'player-bullet',
+  EnemyBullet = 'enemy-bullet',
 }
 
 export enum SoundType {
@@ -150,13 +151,13 @@ export class GameManager {
 
   private createScenario(): void {
     const sceneBackground = {
-      [SceneTag.StartMenu]: SpriteType.MenuBackground,
-      [SceneTag.Ranking]: SpriteType.MenuBackground,
-      [SceneTag.LevelOne]: SpriteType.PlanetOne,
-      [SceneTag.LevelTwo]: SpriteType.PlanetTwo,
-      [SceneTag.LevelThree]: SpriteType.PlanetThree,
+      [SceneTag.StartMenu]: Background.Menu,
+      [SceneTag.Ranking]: Background.Menu,
+      [SceneTag.LevelOne]: Background.PlanetOne,
+      [SceneTag.LevelTwo]: Background.PlanetTwo,
+      [SceneTag.LevelThree]: Background.PlanetThree,
     }
-    const isMenu = sceneBackground[this.currentScene] === SpriteType.MenuBackground;
+    const isMenu = sceneBackground[this.currentScene] === Background.Menu;
     const scale = isMenu ? 12.5 : 0.6;
 
     this.kaplay.add([

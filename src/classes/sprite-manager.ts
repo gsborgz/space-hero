@@ -19,15 +19,29 @@ export enum PlanetAnimation {
   Default = 'default',
 }
 
-export enum SpriteType {
+export enum BossAnimation {
+  Default = 'default',
+}
+
+export enum Sprite {
+  Explosion = 'explosion',
+  PlayerShot = 'player-shot',
+  EnemyShot = 'enemy-shot',
+  Player = 'player',
+  BossOne = 'boss-1',
+  BossTwo = 'boss-2',
+  BossThree = 'boss-3',
+  MinionOne = 'minion-1',
+  MinionTwo = 'minion-2',
+  MinionThree = 'minion-3',
+  MinionFour = 'minion-4',
+}
+
+export enum Background {
+  Menu = 'menu-background',
   PlanetOne = 'planet-one',
   PlanetTwo = 'planet-two',
   PlanetThree = 'planet-three',
-  Explosion = 'explosion',
-  PlayerShot = 'player-shot',
-  EnemyShot = 'player-shot',
-  Player = 'player',
-  MenuBackground = 'menu-background',
 }
 
 export class SpriteManager {
@@ -36,21 +50,22 @@ export class SpriteManager {
   ) { }
 
   public loadSprites(tag: SceneTag): void {
-    this.loadScenarioSprites(tag);
+    this.loadSceneSprites(tag);
     this.loadExplosionSprite();
     this.loadShotSprites();
     this.loadPlayerSprite();
+    this.loadEnemiesSprites(tag);
   }
 
-  private loadScenarioSprites(scene: SceneTag): void {
+  private loadSceneSprites(scene: SceneTag): void {
     const backgroundImages = {
-      [SceneTag.StartMenu]: SpriteType.MenuBackground,
-      [SceneTag.Ranking]: SpriteType.MenuBackground,
-      [SceneTag.LevelOne]: SpriteType.PlanetOne,
-      [SceneTag.LevelTwo]: SpriteType.PlanetTwo,
-      [SceneTag.LevelThree]: SpriteType.PlanetThree,
+      [SceneTag.StartMenu]: Background.Menu,
+      [SceneTag.Ranking]: Background.Menu,
+      [SceneTag.LevelOne]: Background.PlanetOne,
+      [SceneTag.LevelTwo]: Background.PlanetTwo,
+      [SceneTag.LevelThree]: Background.PlanetThree,
     };
-    const isMenu = backgroundImages[scene] === SpriteType.MenuBackground;
+    const isMenu = backgroundImages[scene] === Background.Menu;
 
     this.kaplay.loadSprite(backgroundImages[scene], `src/assets/sprites/${backgroundImages[scene]}.png`, {
       sliceY: 1,
@@ -64,8 +79,31 @@ export class SpriteManager {
     });
   }
 
+  private loadEnemiesSprites(scene: SceneTag): void {
+    const bossImages = {
+      [SceneTag.LevelOne]: Sprite.BossOne,
+      [SceneTag.LevelTwo]: Sprite.BossTwo,
+      [SceneTag.LevelThree]: Sprite.BossThree,
+    };
+
+    if (scene !== SceneTag.StartMenu && scene !== SceneTag.Ranking) {
+      this.kaplay.loadSprite(bossImages[scene], `src/assets/sprites/${bossImages[scene]}.png`, {
+        sliceY: 1,
+        sliceX: 20,
+        anims: {
+          [BossAnimation.Default]: { from: 0, to: 19 },
+        }
+      });
+    }
+
+    this.kaplay.loadSprite(Sprite.MinionOne, `src/assets/sprites/${Sprite.MinionOne}.png`);
+    this.kaplay.loadSprite(Sprite.MinionTwo, `src/assets/sprites/${Sprite.MinionTwo}.png`);
+    this.kaplay.loadSprite(Sprite.MinionThree, `src/assets/sprites/${Sprite.MinionThree}.png`);
+    this.kaplay.loadSprite(Sprite.MinionFour, `src/assets/sprites/${Sprite.MinionFour}.png`);
+  }
+
   private loadExplosionSprite(): void {
-    this.kaplay.loadSprite(SpriteType.Explosion, `src/assets/sprites/${SpriteType.Explosion}.png`, {
+    this.kaplay.loadSprite(Sprite.Explosion, `src/assets/sprites/${Sprite.Explosion}.png`, {
       sliceY: 1,
       sliceX: 6,
       anims: {
@@ -75,7 +113,7 @@ export class SpriteManager {
   }
 
   private loadShotSprites(): void {
-    this.kaplay.loadSprite(SpriteType.PlayerShot, `src/assets/sprites/${SpriteType.PlayerShot}.png`, {
+    this.kaplay.loadSprite(Sprite.PlayerShot, `src/assets/sprites/${Sprite.PlayerShot}.png`, {
       sliceY: 1,
       sliceX: 2,
       anims: {
@@ -83,7 +121,7 @@ export class SpriteManager {
       }
     });
 
-    this.kaplay.loadSprite(SpriteType.EnemyShot, `src/assets/sprites/${SpriteType.EnemyShot}.png`, {
+    this.kaplay.loadSprite(Sprite.EnemyShot, `src/assets/sprites/${Sprite.EnemyShot}.png`, {
       sliceY: 1,
       sliceX: 2,
       anims: {
@@ -93,7 +131,7 @@ export class SpriteManager {
   }
 
   private loadPlayerSprite(): void {
-    this.kaplay.loadSprite(SpriteType.Player, `src/assets/sprites/${SpriteType.Player}.png`, {
+    this.kaplay.loadSprite(Sprite.Player, `src/assets/sprites/${Sprite.Player}.png`, {
       sliceY: 3,
       sliceX: 2,
       anims: {

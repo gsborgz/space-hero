@@ -1,6 +1,6 @@
 import { AnchorComp, AreaComp, BodyComp, GameObj, KAPLAYCtx, LayerComp, PosComp, SpriteComp, Vec2 } from "kaplay";
 import { EntityType, GameConfig, Layer, SceneTag, SoundType } from "./game-manager";
-import { ExplosionAnimation, PlayerAnimation, ShotAnimation, SpriteType } from "./sprite-manager";
+import { ExplosionAnimation, PlayerAnimation, ShotAnimation, Sprite } from "./sprite-manager";
 import { store, score, life } from '../store';
 import { BossObject, MinionObject } from "./enemy-manager";
 
@@ -20,7 +20,7 @@ export class PlayerManager {
 
   public createPlayer(): PlayerObject {
     const newPlayer = this.kaplay.add([
-      this.kaplay.sprite(SpriteType.Player),
+      this.kaplay.sprite(Sprite.Player),
       this.kaplay.pos(0, 0),
       this.kaplay.area({ scale: 0.5, offset: this.kaplay.vec2(8, 0) }),
       this.kaplay.body({ isStatic: true }),
@@ -140,12 +140,17 @@ export class PlayerManager {
           }
         }
       });
+
+      bullet.onCollide(EntityType.EnemyBullet, (object) => {
+        bullet.destroy();
+        object.destroy();
+      });
     }
   }
 
   private playExplosion(pos: Vec2, explosionType: SoundType): void {
     const explosion = this.kaplay.add([
-      this.kaplay.sprite(SpriteType.Explosion),
+      this.kaplay.sprite(Sprite.Explosion),
       this.kaplay.pos(pos.x, pos.y),
       this.kaplay.scale(2.5),
       this.kaplay.anchor('center'),
@@ -167,7 +172,7 @@ export class PlayerManager {
 
   private createNewShot(pos: Vec2): GameObj<SpriteComp | PosComp | LayerComp | AreaComp | BodyComp> {
     return this.kaplay.add([
-      this.kaplay.sprite(SpriteType.PlayerShot),
+      this.kaplay.sprite(Sprite.PlayerShot),
       this.kaplay.pos(pos),
       this.kaplay.area({ scale: 0.2, offset: this.kaplay.vec2(8, 0), collisionIgnore: [EntityType.Player] }),
       this.kaplay.body({ isStatic: false }),
