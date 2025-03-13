@@ -1,6 +1,6 @@
 import { KAPLAYCtx } from 'kaplay';
 import { GameConfig, SceneTag } from './game-manager';
-import { EnemyManager, MoveDirection, MoveType } from './enemy-manager';
+import { EnemyManager, MinionTag, MoveDirection, MoveType } from './enemy-manager';
 import { Sprite } from './sprite-manager';
 
 export class LevelManager {
@@ -68,28 +68,14 @@ export class LevelManager {
 
   private async levelOneWaveOne() {
     await this.loop(1, 10, async (currentLoop) => {
-      this.enemyManager.createMinion({
-        sprite: Sprite.MinionOne,
-        scale: 2,
-        hp: 2,
+      this.enemyManager.createMinion(this.enemyManager.getMinionTemplate(MinionTag.MinionOne, 0, {
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 100),
-        moveType: MoveType.UpDownStraight,
         moveDirection: MoveDirection.Up,
-        moveLimit: 100,
-        speedX: 85,
-        speedY: 150,
-      });
-      this.enemyManager.createMinion({
-        sprite: Sprite.MinionOne,
-        scale: 2,
-        hp: 2,
+      }));
+      this.enemyManager.createMinion(this.enemyManager.getMinionTemplate(MinionTag.MinionOne, 0, {
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) + 100),
-        moveType: MoveType.UpDownStraight,
         moveDirection: MoveDirection.Down,
-        moveLimit: 100,
-        speedX: 85,
-        speedY: 150,
-      });
+      }));
 
       if (currentLoop === 9) {
         await this.wait(10);
@@ -101,27 +87,13 @@ export class LevelManager {
 
   private levelOneWaveTwo() {
     this.loop(1, 10, async (currentLoop) => {
-      this.enemyManager.createMinion({
-        sprite: Sprite.MinionTwo,
-        scale: 2,
-        hp: 2,
-        startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 120),
-        moveType: MoveType.Random,
-        initialMoveInterval: 50,
-        speedX: 100,
-        speedY: 200,
-      });
+      this.enemyManager.createMinion(this.enemyManager.getMinionTemplate(MinionTag.MinionTwo, 0, {
+        startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) - 120)
+      }));
 
-      this.enemyManager.createMinion({
-        sprite: Sprite.MinionTwo,
-        scale: 2,
-        hp: 2,
+      this.enemyManager.createMinion(this.enemyManager.getMinionTemplate(MinionTag.MinionTwo, 0, {
         startPosition: this.kaplay.vec2(this.configs.screen.width, (this.configs.screen.height / 2) + 120),
-        moveType: MoveType.Random,
-        initialMoveInterval: 50,
-        speedX: 100,
-        speedY: 200,
-      });
+      }));
 
       currentLoop++;
 

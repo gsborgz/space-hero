@@ -4,6 +4,13 @@ import { BossAnimation, ExplosionAnimation, ShotAnimation, Sprite } from "./spri
 import { life, score, store } from "../store";
 import { PlayerObject } from "./player-manager";
 
+export enum MinionTag {
+  MinionOne = 'minion-one',
+  MinionTwo = 'minion-two',
+  MinionThree = 'minion-three',
+  MinionFour = 'minion-four',
+}
+
 export enum MoveDirection {
   Up = 'up',
   Down = 'down',
@@ -60,7 +67,210 @@ export class EnemyManager {
   constructor(
     private readonly kaplay: KAPLAYCtx<{}, never>,
     private readonly configs: GameConfig,
-  ) { }
+  ) {}
+
+  private get minion1(): EnemyObj[] {
+    return [
+      {
+        sprite: Sprite.MinionOne,
+        hp: 2,
+        scale: 1.5,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveDirection: MoveDirection.None,
+        moveType: MoveType.UpDown,
+        moveLimit: 100,
+        speedX: 85,
+        speedY: 150,
+      },
+      {
+        sprite: Sprite.MinionOne,
+        hp: 2,
+        scale: 1.5,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveType: MoveType.UpDownStraight,
+        moveDirection: MoveDirection.None,
+        moveLimit: 100,
+        speedX: 85,
+        speedY: 150,
+      }
+    ];
+  }
+
+  private get minion2(): EnemyObj[] {
+    return [
+      {
+        sprite: Sprite.MinionTwo,
+        hp: 2,
+        scale: 2,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveType: MoveType.Random,
+        initialMoveInterval: 50,
+        speedX: 100,
+        speedY: 200,
+      },
+      {
+        sprite: Sprite.MinionTwo,
+        hp: 3,
+        scale: 2,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveType: MoveType.Straight,
+        initialMoveInterval: 50,
+        speedX: 100,
+        speedY: 200,
+      }
+    ];
+  }
+
+  private get minion3(): EnemyObj[] {
+    return [
+      {
+        sprite: Sprite.MinionThree,
+        hp: 8,
+        scale: 2,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveType: MoveType.Straight,
+        initialMoveInterval: 50,
+        speedX: 90,
+        speedY: 90,
+      },
+      {
+        sprite: Sprite.MinionThree,
+        hp: 8,
+        scale: 2,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveType: MoveType.UpDownStraight,
+        initialMoveInterval: 50,
+        speedX: 90,
+        speedY: 90,
+      }
+    ];
+  }
+
+  private get minion4(): EnemyObj[] {
+    return [
+      {
+        sprite: Sprite.MinionFour,
+        hp: 1,
+        scale: 2,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveType: MoveType.Random,
+        initialMoveInterval: 50,
+        speedX: 140,
+        speedY: 240,
+      },
+      {
+        sprite: Sprite.MinionFour,
+        hp: 1,
+        scale: 2,
+        startPosition: this.kaplay.vec2(0, 0),
+        moveType: MoveType.UpDown,
+        initialMoveInterval: 50,
+        speedX: 140,
+        speedY: 240,
+      }
+    ];
+  }
+
+  private get boss1(): EnemyObj {
+    return {
+      sprite: Sprite.BossOne,
+      hp: 50,
+      stopPositionX: 730,
+      shootInterval: 3,
+      startPosition: this.kaplay.vec2(0, 0),
+      moveType: MoveType.UpDown,
+      initialMoveInterval: 50,
+      scale: 2,
+      speedX: 100,
+      speedY: 200,
+    } as EnemyObj;
+  }
+
+  private get boss2(): EnemyObj {
+    return {
+      sprite: Sprite.BossOne,
+      hp: 50,
+      stopPositionX: 730,
+      shootInterval: 3,
+      startPosition: this.kaplay.vec2(0, 0),
+      moveType: MoveType.UpDown,
+      initialMoveInterval: 50,
+      scale: 2,
+      speedX: 100,
+      speedY: 200,
+    } as EnemyObj;
+  }
+
+  private get boss3(): EnemyObj {
+    return {
+      sprite: Sprite.BossOne,
+      hp: 50,
+      stopPositionX: 730,
+      shootInterval: 3,
+      startPosition: this.kaplay.vec2(0, 0),
+      moveType: MoveType.UpDown,
+      initialMoveInterval: 50,
+      scale: 2,
+      speedX: 100,
+      speedY: 200,
+    } as EnemyObj;
+  }
+
+  public getMinionTemplate(minion: MinionTag, variation: number, options: Partial<EnemyObj>): EnemyObj {
+    switch (minion) {
+      case MinionTag.MinionOne:
+        const minionBody = Object.assign({}, this.minion1[variation]);
+
+        this.insertCustomValuesForEnemy(minionBody, options);
+
+        return minionBody;
+      case MinionTag.MinionTwo:
+        const minionBody2 = Object.assign({}, this.minion2[variation]);
+        
+        this.insertCustomValuesForEnemy(minionBody2, options);
+
+        return minionBody2;
+      case MinionTag.MinionThree:
+        const minionBody3 = Object.assign({}, this.minion3[variation]);
+
+        this.insertCustomValuesForEnemy(minionBody3, options);
+
+        return minionBody3;
+      case MinionTag.MinionFour:
+        const minionBody4 = Object.assign({}, this.minion4[variation]);
+
+        this.insertCustomValuesForEnemy(minionBody4, options);
+
+        return minionBody4;
+      default:
+        throw new Error(`Minion ${minion} not found`);
+    }
+  }
+
+  public getBossTemplate(boss: number, options: Partial<EnemyObj>): EnemyObj {
+    switch (boss) {
+      case 1:
+        const bossBody = Object.assign({}, this.boss1);
+
+        this.insertCustomValuesForEnemy(bossBody, options);
+
+        return bossBody;
+      case 2:
+        const bossBody2 = Object.assign({}, this.boss2);
+
+        this.insertCustomValuesForEnemy(bossBody2, options);
+
+        return bossBody2;
+      case 3:
+        const bossBody3 = Object.assign({}, this.boss3);
+
+        this.insertCustomValuesForEnemy(bossBody3, options);
+
+        return bossBody3;
+      default:
+        throw new Error(`Boss ${boss} not found`);
+    }
+  }
 
   public createMinion(config: EnemyObj): void {
     const body: EnemyBody = {
@@ -219,27 +429,6 @@ export class EnemyManager {
       volume: this.configs.sfxVolume,
     });
 
-    bullet.onCollide(EntityType.Player, (object) => {
-      bullet.destroy();
-
-      const player = object as PlayerObject;
-
-      store.set(life, (currentLife) => currentLife - 1);
-
-      if (store.get(life) <= 0) {
-        this.playExplosion(player.pos, SoundType.PlayerDeath);
-
-        player.destroy();
-
-        this.kaplay.wait(2, () => {
-          store.set(life, 3);
-          store.set(score, 0);
-
-          this.kaplay.go(SceneTag.LevelOne);
-        });
-      }
-    });
-
     this.kaplay.wait(enemy.shootInterval!, () => enemy.waitForNextShot = false);
   }
 
@@ -247,7 +436,7 @@ export class EnemyManager {
     return this.kaplay.add([
       this.kaplay.sprite(Sprite.EnemyShot),
       this.kaplay.pos(pos),
-      this.kaplay.area({ scale: 0.2, offset: this.kaplay.vec2(8, 0), collisionIgnore: [EntityType.Player] }),
+      this.kaplay.area({ scale: 0.2, offset: this.kaplay.vec2(8, 0), collisionIgnore: [EntityType.Enemy] }),
       this.kaplay.body({ isStatic: false }),
       this.kaplay.anchor('center'),
       this.kaplay.layer(Layer.Game),
@@ -281,6 +470,16 @@ export class EnemyManager {
 
   private randomIntFromInterval(min: number, max: number) { // min and max included 
     return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  private insertCustomValuesForEnemy(enemy: EnemyObj, options: Partial<EnemyObj>): void {
+    Object.keys(options).forEach((key) => {
+      if (key in enemy) {
+        if (options[key as keyof EnemyObj] !== undefined) {
+          (enemy as any)[key as keyof EnemyObj] = options[key as keyof EnemyObj]!;
+        }
+      }
+    });
   }
 
 }

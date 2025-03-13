@@ -54,20 +54,7 @@ export class PlayerManager {
     player.onCollide(EntityType.Enemy, (enemy) => {
       enemy.hp -= 2;
 
-      store.set(life, (currentLife) => currentLife - 1);
-
-      if (store.get(life) <= 0) {
-        this.playExplosion(player.pos, SoundType.PlayerDeath);
-
-        player.destroy();
-
-        this.kaplay.wait(2, () => {
-          store.set(life, 3);
-          store.set(score, 0);
-
-          this.kaplay.go(SceneTag.LevelOne);
-        });
-      }
+      this.damagePlayer(player);
 
       if (enemy.hp <= 0) {
         this.playExplosion(enemy.pos, SoundType.EnemyDeath);
@@ -82,6 +69,12 @@ export class PlayerManager {
           store.set(score, (currentScore) => currentScore + 1);
         }
       }
+    });
+
+    player.onCollide(EntityType.EnemyBullet, (bullet) => {
+      bullet.destroy();
+
+      this.damagePlayer(player);
     });
   }
 
@@ -182,6 +175,23 @@ export class PlayerManager {
       this.kaplay.offscreen({ destroy: true }),
       EntityType.PlayerBullet
     ]);
+  }
+
+  private damagePlayer(player: PlayerObject): void {
+    store.set(life, (currentLife) => currentLife - 1);
+
+    if (store.get(life) <= 0) {
+      this.playExplosion(player.pos, SoundType.PlayerDeath);
+
+      player.destroy();
+
+      this.kaplay.wait(2, () => {
+        store.set(life, 3);
+        store.set(score, 0);
+
+        this.kaplay.go(SceneTag.LevelOne);
+      });
+    }
   }
 
 }
