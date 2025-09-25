@@ -1,0 +1,43 @@
+{
+  "name": "borges",
+  "version": "1.0.0",
+  "description": "About me",
+  "license": "ISC",
+  "author": "Borgez",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@next/env": "^15.4.3",
+    "@tailwindcss/postcss": "^4.1.11",
+    "i18next": "^25.3.2",
+    "lucide-react": "^0.525.0",
+    "next": "^15.4.3",
+    "postcss": "^8.5.6",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-i18next": "^15.6.1",
+    "tailwindcss": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "22.14.1",
+    "@types/react": "^19.1.2",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "^15.3.1",
+    "eslint-config-prettier": "^10.1.2",
+    "prettier": "^3.5.3",
+    "typescript": "5.8.3"
+  }
+}

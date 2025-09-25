@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+  margin: 0px !important;
+}
+
+#ui {
+  position: absolute;
+  top: 4%;
+  color: white;
+  font-size: 24px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  user-select: none;
+  pointer-events: none;
+}
+
+@layer components {
+  .text-primary {
+    @apply text-slate-700 dark:text-slate-100;
+  }
+
+  .text-secondary {
+    @apply text-slate-500 dark:text-slate-400;
+  }
+
+  .link-primary {
+    @apply text-slate-700 dark:text-slate-100 hover:text-slate-600 dark:hover:text-slate-200;
+  }
+
+  .link-secondary {
+    @apply text-slate-500 dark:text-slate-400 hover:text-slate-400 dark:hover:text-slate-500;
+  }
+}
+
+/* Custom Scrollbar - Cor uniforme para ambos os temas */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgb(226 232 240); /* slate-200 - neutro */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(100 116 139); /* slate-500 - neutro */
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(71 85 105); /* slate-600 - hover mais escuro */
+}
+
+::-webkit-scrollbar-corner {
+  background-color: rgb(226 232 240); /* slate-200 - neutro */
+}
+
+/* Firefox - cor uniforme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(100 116 139) rgb(226 232 240); /* slate-500 slate-200 */
+}
